@@ -7,7 +7,7 @@ export default defineNuxtConfig({
     "nuxt-lodash",
     "@pinia/nuxt",
     "@nuxtjs/tailwindcss",
-    /* "@nuxtjs/supabase", */
+    /* "@nuxtjs/supabase", */ "@nuxt/image",
   ],
   runtimeConfig: {
     public: {
