@@ -110,7 +110,9 @@
 <script setup lang="ts">
 import Loading from "../components/Loading.vue";
 import { ref } from "vue";
+import { useUserStore } from "../stores/user";
 
+const userStore = useUserStore();
 const isAccountMenu = ref(false);
 const searchItem = ref("");
 const isSearching = ref(true);
