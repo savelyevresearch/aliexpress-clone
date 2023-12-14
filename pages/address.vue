@@ -30,10 +30,12 @@
 </template>
 
 <script setup>
+import { add } from "nuxt-lodash/dist/runtime/lodash";
 import MainLayout from "../layouts/MainLayout.vue";
 import { useUserStore } from "../stores/user";
 
 const userStore = useUserStore();
+const user = useSupabaseUser();
 
 const contactName = ref(null);
 const address = ref(null);
@@ -46,7 +48,19 @@ const isUpdate = ref(false);
 const isWorking = ref(false);
 const error = ref(null);
 
-watchEffect(() => {
+watchEffect(async () => {
+    currentAddress.value = await useFetch(`/api/prisma/getAddressByUser/${user.value.id}`);
+
+    if (currentAddress.value.data) {
+        contactName.value = currentAddress.value.data.name;
+        address.value = currentAddress.value.data.address;
+        zipCode.value = currentAddress.value.data.zipcode;
+        city.value = currentAddress.value.data.city;
+        country.value = currentAddress.value.data.country;
+
+        isUpdate.value = true;
+    }
+
     userStore.isLoading = false;
 });
 
@@ -86,5 +100,43 @@ const submit = async () => {
 
         return;
     }
+
+    if (isUpdate.value) {
+        await useFetch(`/api/prisma/updateAddress/${currentAddress.value.data.id}`, {
+            method: "PATCH",
+            body: {
+                userId: user.value.id,
+                name: contactName.value,
+                address: address.value,
+                zipCode: zipCode.value,
+                city: city.value,
+                country: country.value,
+            }
+        });
+
+        isWorking.value = false;
+
+        navigateTo("/checkout");
+
+        return;
+    }
+
+    await useFetch(`/api/prisma/addAddress`, {
+        method: "POST",
+        body: {
+            userId: user.value.id,
+            name: contactName.value,
+            address: address.value,
+            zipCode: zipCode.value,
+            city: city.value,
+            country: country.value,
+        }
+    });
+
+    isWorking.value = false;
+
+    navigateTo("/checkout");
+
+    return;
 }
 </script>
