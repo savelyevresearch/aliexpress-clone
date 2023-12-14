@@ -7,10 +7,11 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "seed": "node prisma/seed.js"
   },
   "prisma": {
-    "seed": "node prisma/seed.ts"
+    "seed": "node prisma/seed.js"
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",
@@ -29,6 +30,7 @@
     "nuxt-lodash": "^2.5.3",
     "pinia": "^2.1.7",
     "prisma": "^5.7.0",
-    "stripe": "^14.8.0"
+    "stripe": "^14.8.0",
+    "ts-node": "^10.9.2"
   }
 }
