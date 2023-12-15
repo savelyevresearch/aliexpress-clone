@@ -80,7 +80,7 @@ const isInCart = computed(() => {
     let result = false;
 
     userStore.cart.forEach(product => {
-        if (route.params.id === product.id) {
+        if (route.params.id == product.id) {
             result = true;
         }
     });

@@ -36,7 +36,7 @@
                 Free Shipping
             </p>
             <div class="flex items-center justify-end">
-                <button @click="removeFormCart()" class="sm:hidden block -mt-0.5 hover:text-red-500">
+                <button @click="removeFromCart()" class="sm:hidden block -mt-0.5 hover:text-red-500">
                     <Icon name="material-symbols:delete-outline" size="20" />
                 </button>
             </div>

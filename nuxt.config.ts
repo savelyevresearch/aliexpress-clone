@@ -7,8 +7,12 @@ export default defineNuxtConfig({
     "nuxt-lodash",
     "@pinia/nuxt",
     "@nuxtjs/tailwindcss",
-    /* "@nuxtjs/supabase", */ "@nuxt/image",
+    "@nuxtjs/supabase",
+    "@nuxt/image",
   ],
+  supabase: {
+    redirect: false,
+  },
   runtimeConfig: {
     public: {
       stripe: process.env.STRIPE_PK_KEY,

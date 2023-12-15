@@ -27,7 +27,7 @@
                     <Icon name="mdi:chevron-down" size="15" class="ml-5" />
                     <div id="AccountMenu" v-if="isAccountMenu"
                         class="absolute bg-white w-[220px] text-[#333333] z-40 top-[38px] -left-[100px] border-x border-b">
-                        <div v-if="true">
+                        <div v-if="!user">
                             <div class="text-semibold text-[15px] my-4 px-3">
                                 Welcome to AliExpress!
                             </div>
@@ -43,7 +43,8 @@
                             <li @click="navigateTo('/orders')" class="text-[13px] px-4 py-2 w-full hover:bg-gray-200">
                                 My Orders
                             </li>
-                            <li v-if="true" class="text-[13px] py-2 px-4 w-full hover:bg-gray-200">
+                            <li v-if="user" class="text-[13px] py-2 px-4 w-full hover:bg-gray-200"
+                                @click="client.auth.signOut()">
                                 Sign out
                             </li>
                         </ul>
@@ -66,16 +67,16 @@
                                 <Icon name="ph:magnifying-glass" size="20" color="#ffffff" />
                             </button>
                         </div>
-                        <div class="absolute bg-white max-w-[700px] h-auto w-full">
-                            <div v-if="false" class="p-1">
-                                <NuxtLink to="/item/1"
+                        <div v-if="items && items.data" class="absolute bg-white max-w-[700px] h-auto w-full">
+                            <div v-for="item in items.data" :key="item.id" class="p-1">
+                                <NuxtLink :to="`/item/${item.id}`"
                                     class="flex items-center justify-between w-full cursor-pointer hover:bg-gray-100">
                                     <div class="flex items-center">
-                                        <NuxtImg class="rounded-md" width="40" src="https://picsum.photos/id/82/300/320" />
-                                        <div class="truncate ml-2">TESTING</div>
+                                        <NuxtImg class="rounded-md" width="40" :src="item.url" />
+                                        <div class="truncate ml-2">{{ item.title }}</div>
                                     </div>
                                     <div class="truncate">
-                                        $ 99.99
+                                        ${{ item.price / 100 }}
                                     </div>
                                 </NuxtLink>
                             </div>
@@ -87,7 +88,7 @@
                         @mouseleave="isCartHover = false">
                         <span
                             class="absolute flex items-center justify-center -right-[3px] top-0 bg-[#FF4646] h-[17px] min-w-[17px] text-xs text-white px-0.5 rounded-full">
-                            0
+                            {{ userStore.cart.length }}
                         </span>
                         <div class="min-w-[40px]">
                             <Icon name="ph:shopping-cart-simple-light" size="33" :color="isCartHover ? '#FF4646' : ''" />
@@ -104,17 +105,40 @@
     <Loading v-if="userStore.isLoading" />
     <div class="lg:pt-[150px] md:pt-[130px] pt-[80px]" />
     <slot />
-    <Footer v-if="!userStore.isLoading"/>
+    <Footer v-if="!userStore.isLoading" />
 </template>
  
-<script setup lang="ts">
+<script setup>
 import Loading from "../components/Loading.vue";
 import { ref } from "vue";
 import { useUserStore } from "../stores/user";
+
+const client = useSupabaseClient();
+const user = useSupabaseUser();
 
 const userStore = useUserStore();
 const isAccountMenu = ref(false);
 const searchItem = ref("");
 const isSearching = ref(true);
 const isCartHover = ref(false);
+const items = ref(null);
+
+const searchByName = useDebounce(async () => {
+    isSearching.value = true;
+    items.value = await useFetch(`/api/prisma/searchByName/${searchItem.value}`);
+    isSearching.value = false;
+}, 100);
+
+watch(searchItem, async () => {
+    if (!searchItem.value) {
+        setTimeout(() => {
+            items.value = "";
+            isSearching.value = false;
+
+            return;
+        }, 500);
+    }
+
+    searchByName();
+});
 </script>
