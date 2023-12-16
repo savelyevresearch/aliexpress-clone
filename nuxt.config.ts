@@ -15,7 +15,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      stripe: process.env.STRIPE_PK_KEY,
+      stripePk: process.env.STRIPE_PK_KEY,
     },
   },
   app: {

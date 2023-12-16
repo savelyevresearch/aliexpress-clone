@@ -85,8 +85,8 @@
                             </div>
                         </div>
                         <form @submit.prevent="pay()">
-                            <div id="cardElement" class="border border-gray-500 p-2 rounded-sm" />
-                            <p id="cardError" role="alert" class="text-red-700 text-center font-semibold" />
+                            <div id="card-element" class="border border-gray-500 p-2 rounded-sm" />
+                            <p id="card-error" role="alert" class="text-red-700 text-center font-semibold" />
                             <button :disabled="isProcessing" type="submit"
                                 class="mt-4 bg-gradient-to-r from-[#FE630C] to-[#FF3200] w-full text-white text-[21px] font-semibold p-1.5 rounded-full"
                                 :class="isProcessing ? 'opacity-70' : 'opacity-100'">
@@ -114,6 +114,7 @@
 <script setup>
 import MainLayout from "../layouts/MainLayout.vue";
 import { useUserStore } from "../stores/user";
+import Stripe from "stripe";
 
 const userStore = useUserStore();
 const user = useSupabaseUser();
@@ -162,25 +163,107 @@ onMounted(() => {
     });
 });
 
-watch(() => total.value, () => {
-    if (total.value > 0) {
-        stripeInit();
-    }
-});
+const showError = (errorMsgText) => {
+    const errorMsg = document.querySelector("#card-error");
 
-const stripeInit = async () => {
+    errorMsg.textContent = errorMsgText;
 
+    setTimeout(() => {
+        errorMsg.textContent = ""
+    }, 4000);
 };
 
-const pay = async () => {
+const stripeInit = async () => {
+    const runtimeConfig = useRuntimeConfig();
 
+    stripe = Stripe(runtimeConfig.stripePk);
+
+    const result = await useFetch(`/api/stripe/paymentIntent`, {
+        method: "POST",
+        body: {
+            amount: total.value
+        }
+    });
+
+    clientSecret = result.client_secret;
+
+    elements = stripe.elements();
+
+    const style = {
+        base: {
+            fontSize: "18px",
+        },
+        invalid: {
+            fontFamily: "Arial, sans-serif",
+            color: "#EE4B2B",
+            iconColor: "#EE4B2B",
+        }
+    };
+
+    card = elements.create("card", {
+        hidePostalCode: true,
+        style
+    });
+
+    card.mount("#card-element");
+    card.on("change", (event) => {
+        document.querySelector("button").disabled = event.empty;
+        document.querySelector("#card-error").textContent = event.error ? event.error.message : "";
+    });
+
+    isProcessing.value = false;
 };
 
 const createOrder = async (stripeId) => {
-
+    await useFetch(`/api/prisma/createOrder`, {
+        method: "POST",
+        body: {
+            userId: user.value.id,
+            stripeId: stripeId,
+            name: currentAddress.value.data.name,
+            address: currentAddress.value.data.address,
+            zipcode: currentAddress.value.data.zipcode,
+            city: currentAddress.value.data.city,
+            country: currentAddress.value.data.country,
+            products: userStore.checkout
+        }
+    });
 };
 
-const showError = (errorMsgText) => {
+const pay = async () => {
+    if (currentAddress.value && currentAddress.value.data == "") {
+        showError("Please add shipping address");
 
+        return;
+    }
+
+    isProcessing.value = true;
+
+    const result = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: { card }
+    });
+
+    if (result.error) {
+        showError(result.error.message);
+
+        isProcessing.value = false;
+    } else {
+        await createOrder(result.paymentIntent.id);
+
+        userStore.cart = [];
+        userStore.checkout = [];
+
+        setTimeout(() => {
+            navigateTo("/success");
+
+            return;
+        }, 500);
+    }
 };
+
+watch(() => total.value, async () => {
+    if (total.value > 0) {
+        await stripeInit();
+    }
+});
 </script>
