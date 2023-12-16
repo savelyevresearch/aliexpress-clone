@@ -30,7 +30,6 @@
 </template>
 
 <script setup>
-import { add } from "nuxt-lodash/dist/runtime/lodash";
 import MainLayout from "../layouts/MainLayout.vue";
 import { useUserStore } from "../stores/user";
 

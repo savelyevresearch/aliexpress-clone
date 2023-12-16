@@ -162,7 +162,7 @@ onMounted(() => {
     });
 });
 
-watch(total, () => {
+watch(() => total.value, () => {
     if (total.value > 0) {
         stripeInit();
     }

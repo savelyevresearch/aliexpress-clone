@@ -95,7 +95,10 @@ const totalPriceComputed = computed(() => {
         price += cardProduct.price;
     });
 
-    const selectedRadioFunc = (element) => {
+    return price / 100;
+});
+
+const selectedRadioFunc = (element) => {
         if (!selectedArray.value.length) {
             selectedArray.value.push(element);
 
@@ -110,9 +113,6 @@ const totalPriceComputed = computed(() => {
             }
         });
     };
-
-    return price / 100;
-});
 
 const goToCheckout = () => {
     let ids = [];

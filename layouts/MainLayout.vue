@@ -129,7 +129,7 @@ const searchByName = useDebounce(async () => {
     isSearching.value = false;
 }, 100);
 
-watch(searchItem, async () => {
+watch(() => searchItem.value, async () => {
     if (!searchItem.value) {
         setTimeout(() => {
             items.value = "";
